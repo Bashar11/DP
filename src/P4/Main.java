@@ -1,9 +1,10 @@
-package P2;
+package P4;
 
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -12,6 +13,8 @@ public class Main {
     static Reiziger sietske = new Reiziger(77, "S", "", "Boers", java.sql.Date.valueOf("1981-03-14"));
     static Reiziger reiziger = new Reiziger(17,"B","","Chamoun",Date.valueOf("1998-04-25"));
     static Adres adres = new Adres(8,"1321JN","Hanstraat","2","Almere",reiziger);
+    static OVChipkaart kaart = new OVChipkaart(12345,Date.valueOf("2020-01-01"),2,20.0,reiziger);
+
 
 
     public static void main(String[]args){
@@ -21,13 +24,21 @@ public class Main {
         try {
             ReizigerDAOPsql rdao = new ReizigerDAOPsql(connection);
             AdresDaoPsql adao = new AdresDaoPsql(connection);
+            OVChipkaartDaoPsql ovdao = new OVChipkaartDaoPsql(connection);
             adao.setRdao(rdao);
+            rdao.setAdresDao(adao);
+            ovdao.setRdao(rdao);
+            rdao.setOvdao(ovdao);
 
             adao.delete(adres);
             rdao.delete(sietske);
             rdao.delete(reiziger);
-            testReizigerDAO( rdao);
-            testAdresDao(adao);
+            ovdao.delete(kaart);
+            testReizigerDAO(rdao);
+            testAdresDao(adao,rdao);
+            testOVChipKaartDao(ovdao,rdao);
+
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -76,7 +87,7 @@ public class Main {
 
         // Maak een nieuwe reiziger aan en persisteer deze in de database
 
-        System.out.print("[Test] Eerst " + reizigers.size() + " reizigers, na ReizigerDAO.save() ");
+        System.out.print("[Test] Eerst " + reizigers.size() + " reizigers, na ReizigerDAO.save() \n");
         rdao.save(sietske);
         rdao.save(reiziger);
         reizigers = rdao.findAll();
@@ -97,21 +108,23 @@ public class Main {
         rdao.update(sietske);
 
         //vinden op basis van id
-        System.out.println("Vinden op basis van id ");
+        System.out.println("[TEST] Vinden op basis van id ");
         rdao.findById(77);
+        System.out.println("----------------------------");
 
         //reiziger vinden op basis van geboorteedatum
-        System.out.println("Vinden op basis van geboortedatum");
+        System.out.println("[TEST] Vinden op basis van geboortedatum");
         rdao.findByGbDatum("2002-12-03");
+        System.out.println("-----------------------------");
 
         //verwijderen test
         rdao.delete(sietske);
 
 
     }
-    private static void testAdresDao(AdresDao adao){
+    private static void testAdresDao(AdresDao adao, ReizigerDAO rdao){
         List<Adres> adressen = adao.findAll();
-        System.out.println("[Test] AdresDAO.findAll() geeft de volgende reizigers:");
+        System.out.println("[Test] AdresDAO.findAll() geeft de volgende adressen:");
         for (Adres a : adressen) {
             System.out.println(a);
         }
@@ -119,13 +132,16 @@ public class Main {
         System.out.println();
 
 
-        System.out.println("test");
+        System.out.println("[TEST] Adres aanmaken---------");
         adao.save(adres);
-
+        System.out.println("-------------");
+        System.out.println("[TEST] Vinden van adres op basis van reiziger---------------");
         adres = adao.findByReiziger(reiziger);
-        System.out.println(adres.getId());
+//        System.out.println(adres.getId());
 
 
+
+        System.out.println("---------");
         adres.setPostCode("1333AA");
         adres.setStraat("KilStraat");
         adres.setHuisNr("13");
@@ -133,10 +149,31 @@ public class Main {
         adao.update(adres);
 
         //verwijderen testen
-
+        System.out.println("---------------");
         adao.delete(adres);
 
         //
+
+
+    }
+    private static void testOVChipKaartDao(OVChipkaartDao ovdao, ReizigerDAO rdao){
+        List<OVChipkaart> kaarten = ovdao.findAll();
+        for(OVChipkaart kaart: kaarten){
+            System.out.println(kaart);
+        }
+
+        ovdao.save(kaart);
+        ovdao.findByReiziger(reiziger);
+
+        System.out.println(kaart);
+        kaart.setKaartnummer(12344);
+        kaart.setGeldigheid(Date.valueOf("2021-01-01"));
+        kaart.setSaldo(40.0);
+        kaart.setKlasse(1);
+        ovdao.update(kaart);
+        System.out.println(kaart);
+        ovdao.delete(kaart);
+        ovdao.findByKaartNr(46392);
 
 
     }

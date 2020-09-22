@@ -1,4 +1,4 @@
-package P2;
+package P4;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,15 +11,19 @@ import java.util.List;
 public class ReizigerDAOPsql implements ReizigerDAO{
     private Connection connection;
     private AdresDao adao;
+    private OVChipkaartDao ovdao;
+
 
     public ReizigerDAOPsql(Connection connection){
         this.connection = connection;
 
-
     }
+    public void setAdresDao(AdresDao adao){this.adao = adao;}
+    public void setOvdao(OVChipkaartDao ovdao){this.ovdao = ovdao;}
 
     @Override
     public boolean save(Reiziger reiziger) {
+
         try{
             //er wordt een gebruik gemaakt van de PreparedStatement om beveiliging issues , voor een veiliger werk
             //een sql statement schrijven
@@ -31,6 +35,13 @@ public class ReizigerDAOPsql implements ReizigerDAO{
             statement.setDate(5,reiziger.getGeboortedatum());//parameter index voor geboortedatum
 
             statement.executeUpdate(); // excuten van de statement, laten runnen
+            if (reiziger.getAdres() != null)
+                adao.save(reiziger.getAdres());
+
+            // If Reiziger has OVChipkaarten, save them
+            if (reiziger.getKaarten().size() > 0)
+                for (OVChipkaart ovChipkaart : reiziger.getKaarten())
+                    ovdao.save(ovChipkaart);
 
 
         }
@@ -55,6 +66,16 @@ public class ReizigerDAOPsql implements ReizigerDAO{
             statement.setInt(5,reiziger.getId());
 
             int i = statement.executeUpdate();
+            if (reiziger.getAdres() != null)
+                if (adao.findByReiziger(reiziger) == null)
+                    adao.save(reiziger.getAdres());
+
+            // If Reiziger has OVChipkaarten, check if they exists else save them
+            if (reiziger.getKaarten().size() > 0)
+                for (OVChipkaart ovChipkaart : reiziger.getKaarten())
+                    if (ovdao.findByKaartNr(ovChipkaart.getKaartnummer()) == null)
+                        ovdao.save(ovChipkaart);
+
             System.out.println(i+" gegevens zijn succesvol gewijzigd");
 
         }catch(SQLException e){
@@ -67,6 +88,13 @@ public class ReizigerDAOPsql implements ReizigerDAO{
 
     @Override
     public boolean delete(Reiziger reiziger) {
+        if (adao.findByReiziger(reiziger) != null)
+            adao.delete(reiziger.getAdres());
+
+        // If Reiziger has OVChipkaarten, delete them
+        if (reiziger.getKaarten().size() > 0)
+            for (OVChipkaart ovChipkaart : reiziger.getKaarten())
+                ovdao.delete(ovChipkaart);
         try{
             //verwijderen
             PreparedStatement statement = connection.prepareStatement("DELETE FROM reiziger WHERE reiziger_id = ?");
@@ -101,9 +129,13 @@ public class ReizigerDAOPsql implements ReizigerDAO{
                 Date geboortedatum = Date.valueOf(rs.getString("geboortedatum"));
 
 
-                System.out.println("#"+id + ": "+ voorletters +" " +tussenvoegsel+" "+ achternaam + " "+"( " + geboortedatum + " )");
+               System.out.println("#"+id + ": "+ voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel)+" "+ achternaam + " "+"( " + geboortedatum + " )");
 
-                return new Reiziger(id, voorletters, tussenvoegsel, achternaam, geboortedatum);
+                Reiziger reiziger = new Reiziger(id, voorletters, tussenvoegsel, achternaam, geboortedatum);
+                adao.findByReiziger(reiziger);
+                ovdao.findByReiziger(reiziger);
+
+                return reiziger;
             }
         }
         catch(SQLException e){//sql exception
@@ -141,8 +173,15 @@ public class ReizigerDAOPsql implements ReizigerDAO{
                 String tussenvoegsel = rs.getString("tussenvoegsel");
                 String achternaam = rs.getString("achternaam");
                 Date geboortedatum = Date.valueOf(rs.getString("geboortedatum"));
+                Reiziger reiziger = new Reiziger(id, voorletters, tussenvoegsel, achternaam, geboortedatum);
+                System.out.println("#"+id + ": "+ voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel)+" "+ achternaam + " "+"( " + geboortedatum + " )");
 
-                System.out.println("#"+id + ": "+ voorletters +" " +tussenvoegsel+" "+ achternaam + " "+"( " + geboortedatum + " )");
+                // Find Adres en Kaarten
+                adao.findByReiziger(reiziger);
+//                ovdao.findByReiziger(reiziger);
+
+                result.add(reiziger);
+
             }
 
 
@@ -175,9 +214,13 @@ public class ReizigerDAOPsql implements ReizigerDAO{
                 String achternaam = rs.getString("achternaam");
                 Date geboortedatum = Date.valueOf(rs.getString("geboortedatum"));
 
-                System.out.println("#"+id + ": "+ voorletters +" " +tussenvoegsel+" "+ achternaam + " "+"( " + geboortedatum + " )");
-                result.add(new Reiziger(id,voorletters,tussenvoegsel,achternaam,geboortedatum));
 
+                System.out.println("#"+id + ": "+ voorletters  +(tussenvoegsel == null ? "" : " " + tussenvoegsel)+" "+ achternaam + " "+"( " + geboortedatum + " )");
+                Reiziger reiziger = new Reiziger(id,voorletters,tussenvoegsel,achternaam,geboortedatum);
+
+                adao.findByReiziger(reiziger);
+//                ovdao.findByReiziger(reiziger);
+                result.add(reiziger);
             }
 
             rs.close();

@@ -1,4 +1,4 @@
-package P2;
+package P4;
 
 
 
@@ -73,7 +73,14 @@ public class Adres {
 
 
     public String toString(){
-        String s = id + "- Het adres is  " +straat +", " +huisNr + ", " + postCode +" ," + woonplaats ;
+        String s = id + "- Het adres is  " +straat +", " +huisNr + ", " + postCode +" ," + woonplaats;
+        return s;
+    }
+
+    public String String(){
+        String s = id + "- Het adres is  " +straat +", " +huisNr + ", " + postCode +" ," + woonplaats + reiziger.String() ;
         return s;
     }
 }
+
+
