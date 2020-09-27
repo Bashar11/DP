@@ -1,10 +1,19 @@
 package P4;
 
+import P4.Interface.AdresDao;
+import P4.Interface.OVChipkaartDao;
+import P4.Interface.ReizigerDAO;
+import P4.JDBC.AdresDaoPsql;
+import P4.JDBC.OVChipkaartDaoPsql;
+import P4.JDBC.ReizigerDAOPsql;
+import P4.domein.Adres;
+import P4.domein.OVChipkaart;
+import P4.domein.Reiziger;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -139,9 +148,13 @@ public class Main {
         adres = adao.findByReiziger(reiziger);
 //        System.out.println(adres.getId());
 
+        System.out.println("[TEST] Vinden van adres op basis van id");
+        Adres adres1 = adao.findById(3);
+        System.out.println(adres1);
 
 
-        System.out.println("---------");
+
+        System.out.println("-----UPDATEN-----");
         adres.setPostCode("1333AA");
         adres.setStraat("KilStraat");
         adres.setHuisNr("13");
@@ -149,7 +162,7 @@ public class Main {
         adao.update(adres);
 
         //verwijderen testen
-        System.out.println("---------------");
+        System.out.println("-------VERWIJDEREN--------");
         adao.delete(adres);
 
         //
@@ -158,21 +171,31 @@ public class Main {
     }
     private static void testOVChipKaartDao(OVChipkaartDao ovdao, ReizigerDAO rdao){
         List<OVChipkaart> kaarten = ovdao.findAll();
+        System.out.println("--------ALLE KAARTEN--------");
         for(OVChipkaart kaart: kaarten){
             System.out.println(kaart);
         }
 
+        System.out.println("--------INSERTEN--------");
         ovdao.save(kaart);
-        ovdao.findByReiziger(reiziger);
 
+
+        System.out.println("--------VINDEN OP BASIS VAN REIZIGER---------");
+        ovdao.findByReiziger(reiziger);
         System.out.println(kaart);
+
+        System.out.println("--------UPDATEN VAN OV--------");
         kaart.setKaartnummer(12344);
         kaart.setGeldigheid(Date.valueOf("2021-01-01"));
         kaart.setSaldo(40.0);
         kaart.setKlasse(1);
         ovdao.update(kaart);
         System.out.println(kaart);
+
+        System.out.println("---------VERWIJDEREN---------");
         ovdao.delete(kaart);
+
+        System.out.println("--------VINDEN OP BASIS VAN KAARTNUMMER--------");
         ovdao.findByKaartNr(46392);
 
 

@@ -1,5 +1,10 @@
-package P4;
+package P4.JDBC;
 
+
+import P4.Interface.AdresDao;
+import P4.Interface.ReizigerDAO;
+import P4.domein.Adres;
+import P4.domein.Reiziger;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -21,6 +26,13 @@ public class AdresDaoPsql implements AdresDao {
 
 
     public boolean save(Adres adres) {
+        if(adres == null){
+            try {
+                throw new Exception("Adres bestaat al");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
 
         try {
@@ -160,19 +172,17 @@ public class AdresDaoPsql implements AdresDao {
             // Resultaten
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            int reiziger_id;
-            String straat, huisnummer, postcode, woonplaats;
-            Adres adres = null;
 
             while (resultSet.next()) {
 
-                straat = resultSet.getString("straat");
-                huisnummer = resultSet.getString("huisnummer");
-                postcode = resultSet.getString("postcode");
-                woonplaats = resultSet.getString("woonplaats");
-                reiziger_id = resultSet.getInt("reiziger_id");
+                String straat = resultSet.getString("straat");
+                String huisnummer = resultSet.getString("huisnummer");
+                String postcode = resultSet.getString("postcode");
+                String woonplaats = resultSet.getString("woonplaats");
+                int reiziger_id = resultSet.getInt("reiziger_id");
 
-                adres = new Adres(id, straat, huisnummer, postcode, woonplaats, rdao.findById(reiziger_id));
+                Adres adres = new Adres(id, straat, huisnummer, postcode, woonplaats, rdao.findById(reiziger_id));
+                return adres;
 
             }
             // Sluit alles
@@ -180,7 +190,7 @@ public class AdresDaoPsql implements AdresDao {
             preparedStatement.close();
 
             // Return
-            return adres;
+
         }catch (SQLException e){
             System.out.println("Error " + e.getMessage());
         }

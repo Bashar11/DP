@@ -1,14 +1,22 @@
-package P4;
+package P4.JDBC;
 
+
+import P4.Interface.OVChipkaartDao;
+import P4.Interface.ProductDao;
+import P4.Interface.ReizigerDAO;
+import P4.domein.OVChipkaart;
+import P4.domein.Product;
+import P4.domein.Reiziger;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OVChipkaartDaoPsql implements OVChipkaartDao{
+public class OVChipkaartDaoPsql implements OVChipkaartDao {
 
     private Connection connection;
     private ReizigerDAO rdao;
+    private ProductDao pdao;
 
     public OVChipkaartDaoPsql(Connection connection){
         this.connection = connection;
@@ -17,6 +25,8 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao{
     public void setRdao(ReizigerDAO reizigerDAO) {
         this.rdao = reizigerDAO;
     }
+    public void setPdao(ProductDao pdao){this.pdao = pdao;}
+
 
 
 
@@ -213,6 +223,56 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao{
         }
         return null;
     }
+
+    @Override
+    public List<OVChipkaart> findByProduct(Product product) {
+        PreparedStatement statement = null;
+        ResultSet rs = null;
+        List<OVChipkaart> lijstKaarten = new ArrayList<>();
+        try{
+             statement = connection.prepareStatement("SELECT ov.kaart_nummer, ov.geldig_tot,ov.klasse,ov.saldo,ov.reiziger_id\n"+
+                    "FROM ov_chipkaart ov JOIN ov_chipkaart_product ovc ON ov.kaart_nummer = ovc.kaart_nummer\n"+
+                    "WHERE product_nummer = ?");
+            statement.setInt(1,product.getProductNr());
+
+             rs = statement.executeQuery();
+            while (rs.next()){
+                int kaartNr = rs.getInt("kaart_nummer");
+                Date geldigheid = rs.getDate("geldig_tot");
+                int klasse = rs.getInt("klasse");
+                double saldo = rs.getDouble("saldo");
+                int reiziger_id = rs.getInt("reiziger_id");
+                int productNr = rs.getInt("product_nummer");
+                OVChipkaart ovChipkaart = new OVChipkaart(kaartNr,geldigheid,klasse,saldo,rdao.findById(reiziger_id));
+
+                Product product1 = pdao.findByNr(productNr);
+                if(product1 != null){
+                    ovChipkaart.addProduct(product1);
+                }
+                lijstKaarten.add(ovChipkaart);
+            }
+            return lijstKaarten;
+
+        }
+        catch (SQLException e){
+            System.out.println("Fout met weergeven van resultaten. " + e.getMessage());
+        }
+        finally {
+            try{
+                if(rs != null){
+                    rs.close();
+                }
+                if (statement != null){
+                    statement.close();
+                }
+            }
+            catch (Exception e){
+                //exception bij sluiten van ResultSet en PreparedStatement
+            }
+        }
+        return null;
+    }
+
 
 }
 

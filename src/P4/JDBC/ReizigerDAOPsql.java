@@ -1,4 +1,11 @@
-package P4;
+package P4.JDBC;
+
+
+import P4.Interface.AdresDao;
+import P4.Interface.OVChipkaartDao;
+import P4.Interface.ReizigerDAO;
+import P4.domein.OVChipkaart;
+import P4.domein.Reiziger;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -8,7 +15,7 @@ import java.util.List;
 
 
 
-public class ReizigerDAOPsql implements ReizigerDAO{
+public class ReizigerDAOPsql implements ReizigerDAO {
     private Connection connection;
     private AdresDao adao;
     private OVChipkaartDao ovdao;
@@ -23,6 +30,14 @@ public class ReizigerDAOPsql implements ReizigerDAO{
 
     @Override
     public boolean save(Reiziger reiziger) {
+
+        if(reiziger != null){
+            try {
+                throw new Exception("Reiziger bestaat al ");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         try{
             //er wordt een gebruik gemaakt van de PreparedStatement om beveiliging issues , voor een veiliger werk
@@ -178,7 +193,7 @@ public class ReizigerDAOPsql implements ReizigerDAO{
 
                 // Find Adres en Kaarten
                 adao.findByReiziger(reiziger);
-//                ovdao.findByReiziger(reiziger);
+                ovdao.findByReiziger(reiziger);
 
                 result.add(reiziger);
 
@@ -219,7 +234,7 @@ public class ReizigerDAOPsql implements ReizigerDAO{
                 Reiziger reiziger = new Reiziger(id,voorletters,tussenvoegsel,achternaam,geboortedatum);
 
                 adao.findByReiziger(reiziger);
-//                ovdao.findByReiziger(reiziger);
+                ovdao.findByReiziger(reiziger);
                 result.add(reiziger);
             }
 

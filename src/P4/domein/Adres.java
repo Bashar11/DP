@@ -1,5 +1,4 @@
-package P4;
-
+package P4.domein;
 
 
 public class Adres {
@@ -77,10 +76,7 @@ public class Adres {
         return s;
     }
 
-    public String String(){
-        String s = id + "- Het adres is  " +straat +", " +huisNr + ", " + postCode +" ," + woonplaats + reiziger.String() ;
-        return s;
-    }
+
 }
 
 

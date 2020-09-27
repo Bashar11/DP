@@ -1,4 +1,7 @@
-package P4;
+package P4.domein;
+
+import P4.domein.Adres;
+import P4.domein.OVChipkaart;
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -54,14 +57,29 @@ public class Reiziger {
     public Date getGeboortedatum(){return geboortedatum;}
     public void setGeboortedatum(Date geboortedatum){this.geboortedatum = geboortedatum;}
 
+    public boolean equals(Object obj){
+
+        boolean gelijkeReiziger = false ;
+
+        if(obj instanceof Reiziger){
+            Reiziger reiziger = (Reiziger) obj;
+
+            if(this.id == reiziger.id &&
+               this.achternaam.equals(reiziger.achternaam)&&
+               this.voorletters.equals(reiziger.voorletters)&&
+               this.tussenvoegsel.equals(reiziger.tussenvoegsel)&&
+               this.geboortedatum.equals(reiziger.geboortedatum)){
+                gelijkeReiziger = true;
+            }
+        }
+        return gelijkeReiziger;
+    }
+
     public Adres getAdres(){return adres;}
     public void setAdres(Adres adres ){this.adres = adres ;}
 
 
-    public String toStringss(){
-        String res = voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel) + achternaam;
-        return res;
-    }
+
     public List<OVChipkaart> getKaarten(){return kaarten;}
     public void addKaart(OVChipkaart newKaart){
         kaarten.add(newKaart);
@@ -70,31 +88,17 @@ public class Reiziger {
         kaarten.remove(oldKaart);
     }
 
-    public String String(){
-        String s = voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel) +" " + achternaam+ " heeft een id " + id + " en is geboren op " + geboortedatum ;
-        return s;
 
-    }
 
     public String toString(){
-        String s = voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel) +" " + achternaam+ " heeft een id " + id + " en is geboren op " + geboortedatum + buildOv();
+        String s = voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel) +" " + achternaam+ " heeft een id " + id + " en is geboren op " + geboortedatum ;
         if (adres ==null ){
             s += ". Het adres is onbekend. ";
         }else{
-             s+=adres;
+             s+=adres.toString();
 
     }return s;
 }
 
-    public String buildOv(){
-        ArrayList<OVChipkaart> lijst = new ArrayList<>();
-        if(kaarten != null){
-            if(kaarten.size() >0){
-                for(OVChipkaart kaart: kaarten){
-                    lijst.add(kaart);
-                }
-            }
-        }
-        return String.valueOf(lijst);
-    }
+
 }

@@ -1,19 +1,29 @@
-package P4;
+package P4.JDBC;
+
+import P4.Interface.OVChipkaartDao;
+import P4.Interface.ProductDao;
+import P4.domein.OVChipkaart;
+import P4.domein.Product;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ProductDaoPsql implements ProductDao{
+public class ProductDaoPsql implements ProductDao {
     private Connection connection;
     private static PreparedStatement statement;
     private static ResultSet rs;
+    private OVChipkaartDao ovdao;
 
 
     public ProductDaoPsql(Connection connection) {
         this.connection = connection;
     }
+    public void setOvdao(OVChipkaartDao ovdao){this.ovdao = ovdao;}
+
 
     @Override
     public boolean save(Product product) {
@@ -68,7 +78,7 @@ public class ProductDaoPsql implements ProductDao{
     }
 
     @Override
-    public Product findByNr(Product product) {
+    public Product findByNr(int product) {
         try{
             statement = connection.prepareStatement("SELECT * FROM product WHERE product_nummer = ?");
             rs = statement.executeQuery();
@@ -85,6 +95,79 @@ public class ProductDaoPsql implements ProductDao{
         }
         catch(SQLException e){
             e.getMessage();
+        }
+        return null;
+    }
+
+    @Override
+    public List<Product> findByOVChipkaart(OVChipkaart kaart) {
+        List<Product> products = new ArrayList<>();
+        try{
+            statement = connection.prepareStatement("SELECT p.naam, p.beschrijving, p.prijs, p.product_nummer AS product_nummer\n" +
+                    "                FROM product p JOIN ov_chipkaart_product ocp ON p.product_nummer = ocp.product_nummer\n" +
+                    "                \n" +
+                    "                WHERE ocp.kaart_nummer = ");
+            statement.setInt(1,kaart.getKaartnummer());
+            rs = statement.executeQuery();
+            while(rs.next()){
+                String naam = rs.getString("naam");
+                String beschrijving = rs.getString("beschrijving");
+                double prijs = rs.getDouble("prijs");
+                int productNr = rs.getInt("product_nummer");
+                int kaartNummer = rs.getInt("kaart_nummer");
+                Product product = new Product(productNr,naam,beschrijving,prijs);
+
+                OVChipkaart card = ovdao.findByKaartNr(kaartNummer);
+                if(card != null){
+                    product.addKaart(card);
+                }
+
+                products.add(product);
+
+            }
+            return products;
+
+        }
+        catch (SQLException e){
+            e.getMessage();
+        }
+        return null;
+    }
+
+    @Override
+    public List<Product> findAll() {
+        List<Product> products = new ArrayList<>();
+        try{
+            statement = connection.prepareStatement("SELECT * FROM product");
+            rs = statement.executeQuery();
+
+            while (rs.next()){
+                int productNr = rs.getInt("product_nummer");
+                String naam = rs.getString("naam");
+                String beschrijving = rs.getString("beschrijving");
+                double prijs = rs.getDouble("prijs");
+
+                Product product1 = new Product(productNr,naam,beschrijving,prijs);
+                products.add(product1);
+
+            }
+
+        }
+        catch(SQLException e){
+            System.out.println("FOUT" + e.getMessage());
+
+        }
+        finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (statement != null) {
+                    statement.close();
+                }
+            } catch (Exception exc) {
+                //exception bij closen van resultset
+            }
         }
         return null;
     }

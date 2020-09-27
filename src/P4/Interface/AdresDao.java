@@ -1,4 +1,7 @@
-package P4;
+package P4.Interface;
+
+import P4.domein.Adres;
+import P4.domein.Reiziger;
 
 import java.util.List;
 
