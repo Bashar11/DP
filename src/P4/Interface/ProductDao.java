@@ -12,6 +12,6 @@ public interface ProductDao {
     public Product findByNr(int product);
     public List<Product> findByOVChipkaart(OVChipkaart kaart);
     public List<Product> findAll();
-
+    public List<Product> findByOVChipkaartZonderKaarten(int kaartnummer);
     
 }

@@ -141,7 +141,7 @@ public class AdresDaoPsql implements AdresDao {
                 System.out.println("#" + id + " :" + postcode + " " + huisnummer + " " + straat + " " + woonplaats);
 
 
-                return new Adres(id, postcode, straat, huisnummer, woonplaats, reiziger);
+                return new Adres(id, postcode, straat, huisnummer, woonplaats);
             }
         } catch (SQLException e) {
             System.out.println("een fout opgetreden met het vinden van adres " + e.getMessage());

@@ -67,6 +67,8 @@ public class ProductDaoPsql implements ProductDao {
     @Override
     public boolean delete(Product product) {
         try{
+            updateOvChipkaartRelatie(product);
+
             statement = connection.prepareStatement("DELETE FROM product WHERE product_nummer = ?");
             statement.setInt(1,product.getProductNr());
             System.out.println("Product is met succes verwijderd");
@@ -75,6 +77,13 @@ public class ProductDaoPsql implements ProductDao {
             System.out.println("Een fout bij het verwijderen van de gegevens. " + e.getMessage());
         }
         return false;
+    }
+
+    private void updateOvChipkaartRelatie(Product productnummer) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM ov_chipkaart_product WHERE product_nummer = ?");
+        statement.setInt(1, productnummer.getProductNr());
+        statement.executeUpdate();
+        statement.close();
     }
 
     @Override
@@ -168,6 +177,33 @@ public class ProductDaoPsql implements ProductDao {
             } catch (Exception exc) {
                 //exception bij closen van resultset
             }
+        }
+        return null;
+    }
+
+    @Override
+    public List<Product> findByOVChipkaartZonderKaarten(int kaartnummer) {
+        List<Product> products = new ArrayList<>();
+        try{
+            statement = connection.prepareStatement("SELECT p.naam, p.beschrijving, p.prijs, p.product_nummer AS product_nummer\n" +
+                    "                FROM product p JOIN ov_chipkaart_product ocp ON p.product_nummer = ocp.product_nummer\n" +
+                    "                \n" +
+                    "                WHERE ocp.kaart_nummer = ");
+            statement.setInt(1,kaartnummer);
+            rs = statement.executeQuery();
+            while(rs.next()){
+                String naam = rs.getString("naam");
+                String beschrijving = rs.getString("beschrijving");
+                double prijs = rs.getDouble("prijs");
+                int productNr = rs.getInt("product_nummer");
+                Product product = new Product(productNr,naam,beschrijving,prijs);
+
+                products.add(product);
+            }
+            return products;
+        }
+        catch (SQLException e){
+            e.getMessage();
         }
         return null;
     }

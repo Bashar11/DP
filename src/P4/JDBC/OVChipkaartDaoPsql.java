@@ -33,8 +33,6 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
 
     @Override
     public boolean save(OVChipkaart ovkaart) {
-
-
         try{
             PreparedStatement statement = connection.prepareStatement("INSERT INTO ov_chipkaart (kaart_nummer,geldig_tot,klasse,saldo,reiziger_id) VALUES (?,?,?,?,?)");
             statement.setInt(1,ovkaart.getKaartnummer());
@@ -45,6 +43,8 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
 
             int i = statement.executeUpdate();
             System.out.println(i + " Gegevens zijn met succes aangemaakt");
+
+            updateProductRelatie(ovkaart.getKaartnummer(), ovkaart.getProducten());
 
         }catch(SQLException e){
             System.out.println("Er is een fout opgetreden met het aanmaken van de gegevens. "+ e.getMessage()
@@ -65,6 +65,8 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
             statement.setInt(5,ovkaart.getReiziger().getId());
             statement.setInt(6,ovkaart.getKaartnummer());
 
+            updateProductRelatie(ovkaart.getKaartnummer(), ovkaart.getProducten());
+
             int i = statement.executeUpdate();
             System.out.println(i + " Gegevens zijn met succes gewijzigd");
 
@@ -76,10 +78,28 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
         return false;
     }
 
+    private void updateProductRelatie(int kaartnummer, List<Product> products) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM ov_chipkaart_product WHERE kaart_nummer = ?");
+        statement.setInt(1, kaartnummer);
+        statement.executeUpdate();
+        statement.close();
+
+        statement = connection.prepareStatement("INSERT INTO ov_chipkaart_product (kaart_nummer, product_nummer) VALUES (?, ?)");
+        for(Product product : products) {
+            statement.setInt(1, kaartnummer);
+            statement.setInt(2, product.getProductNr());
+            statement.executeUpdate();
+        }
+        statement.close();
+    }
+
     @Override
     public boolean delete(OVChipkaart ovkaart) {
 
         try{
+            //leegmaken van de relaties met product
+            updateProductRelatie(ovkaart.getKaartnummer(), new ArrayList<>());
+
            PreparedStatement statement = connection.prepareStatement("DELETE FROM ov_chipkaart WHERE kaart_nummer =?");
             statement.setInt(1,ovkaart.getKaartnummer());
             int i = statement.executeUpdate();
@@ -92,9 +112,6 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
         }
         return false;
     }
-
-
-
 
     @Override
     public List<OVChipkaart> findByReiziger(Reiziger reiziger) {
@@ -199,8 +216,19 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
                 int klasse = rs.getInt("klasse");
                 double saldo = rs.getDouble("saldo");
 
+                List<Product> products = pdao.findByOVChipkaartZonderKaarten(kaartNummer);
+
                 System.out.println("KaartNummer: "+kaartNummer +". Geldigheid: " + geldigheid+". Klasse: "+klasse + ". Saldo: "+ saldo );
-                return new OVChipkaart(kaartNummer,geldigheid,klasse,saldo);
+                OVChipkaart result = new OVChipkaart(kaartNummer,geldigheid,klasse,saldo);
+                for(Product product : products) {
+                    List<OVChipkaart> ovChipkaarts = findByProduct(product);
+                    for(OVChipkaart ovChipkaart : ovChipkaarts) {
+                        product.addKaart(ovChipkaart);
+                    }
+                    result.addProduct(product);
+                }
+
+                return result;
             }
         }
         catch(SQLException e){
