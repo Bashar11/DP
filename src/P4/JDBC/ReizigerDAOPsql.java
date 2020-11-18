@@ -13,7 +13,6 @@ import java.util.List;
 
 
 
-
 public class ReizigerDAOPsql implements ReizigerDAO {
     private Connection connection;
     private AdresDao adao;
@@ -141,6 +140,8 @@ public class ReizigerDAOPsql implements ReizigerDAO {
 
                 Reiziger reiziger = new Reiziger(id, voorletters, tussenvoegsel, achternaam, geboortedatum);
                 reiziger.setAdres(adao.findByReiziger(reiziger));
+                reiziger.setOVchipkaarten(ovdao.findByReiziger(reiziger));
+
 
                 return reiziger;
             }
@@ -223,8 +224,9 @@ public class ReizigerDAOPsql implements ReizigerDAO {
 
                 Reiziger reiziger = new Reiziger(id,voorletters,tussenvoegsel,achternaam,geboortedatum);
 
-                adao.findByReiziger(reiziger);
-                ovdao.findByReiziger(reiziger);
+                reiziger.setAdres(adao.findByReiziger(reiziger));
+                reiziger.setOVchipkaarten(ovdao.findByReiziger(reiziger));
+
                 result.add(reiziger);
             }
 
