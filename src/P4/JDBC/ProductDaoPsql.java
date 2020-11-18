@@ -28,12 +28,14 @@ public class ProductDaoPsql implements ProductDao {
     @Override
     public boolean save(Product product) {
         try{
-            statement = connection.prepareStatement("INSERT INTO product (product_nummer, naam, beschrijving,prijs) VALUES(?,?,?,?,?)");
+            statement = connection.prepareStatement("INSERT INTO product (product_nummer, naam, beschrijving,prijs) VALUES(?,?,?,?)");
             statement.setInt(1,product.getProductNr());
             statement.setString(2,product.getNaam());
             statement.setString(3,product.getBeschrijving());
             statement.setDouble(4,product.getPrijs());
             statement.executeUpdate();
+
+            updateOVRelatie(product.getProductNr(), product.getOv());
 
             System.out.println("Product is aangemaakt");
 
@@ -56,6 +58,8 @@ public class ProductDaoPsql implements ProductDao {
             statement.executeUpdate();
             System.out.println("Gegevens zijn met succes verwerkt...");
 
+            updateOVRelatie(product.getProductNr(),product.getOv());
+
 
         }
         catch(SQLException e){
@@ -71,6 +75,7 @@ public class ProductDaoPsql implements ProductDao {
 
             statement = connection.prepareStatement("DELETE FROM product WHERE product_nummer = ?");
             statement.setInt(1,product.getProductNr());
+            statement.executeUpdate();
             System.out.println("Product is met succes verwijderd");
         }
         catch(SQLException e){
@@ -78,6 +83,22 @@ public class ProductDaoPsql implements ProductDao {
         }
         return false;
     }
+
+    private void updateOVRelatie(int productnummer, List<OVChipkaart> kaarten) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM ov_chipkaart_product WHERE product_nummer = ?");
+        statement.setInt(1, productnummer);
+        statement.executeUpdate();
+        statement.close();
+
+        statement = connection.prepareStatement("INSERT INTO ov_chipkaart_product (product_nummer, kaart_nummer) VALUES (?, ?)");
+        for(OVChipkaart kaart : kaarten) {
+            statement.setInt(1, productnummer);
+            statement.setInt(2, kaart.getKaartnummer());
+            statement.executeUpdate();
+        }
+        statement.close();
+    }
+
 
     private void updateOvChipkaartRelatie(Product productnummer) throws SQLException {
         PreparedStatement statement = connection.prepareStatement("DELETE FROM ov_chipkaart_product WHERE product_nummer = ?");
@@ -160,6 +181,7 @@ public class ProductDaoPsql implements ProductDao {
                 products.add(product1);
 
             }
+            return products;
 
         }
         catch(SQLException e){
@@ -181,6 +203,8 @@ public class ProductDaoPsql implements ProductDao {
         return null;
     }
 
+    //Een mogelijke uitvoer van vinden van product op basis van ov chipkaart
+    // Dit is een voorbeeld van het het mogelijk kan , maar er wordt geen test geschreven hiervoor
     @Override
     public List<Product> findByOVChipkaartZonderKaarten(int kaartnummer) {
         List<Product> products = new ArrayList<>();

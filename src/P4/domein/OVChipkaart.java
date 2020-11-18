@@ -91,13 +91,15 @@ public class OVChipkaart {
 
     public void addProduct(Product product){
         for(Product product1: producten){
-            if(product.getProductNr() == product.getProductNr()){
-                throw new DuplicateException("product ", product1.getProductNr() , "Product nummer");
+            if(product1.getProductNr() == product.getProductNr()){
+                throw new DuplicateException("product ", product.getProductNr() , "Product nummer");
 
             }
-        }
 
+        }
         producten.add(product);
+
+
     }
 
     public void deleteProduct(Product product){
@@ -113,7 +115,7 @@ public class OVChipkaart {
 
     public String toString(){
         String s = " Ov-nummer: " + kaartnummer + ".\n Geldigheid: " + geldigheid +".\n Klasse: " + klasse +
-                ".\n Saldo: " + saldo + ". \n Reiziger: " + reiziger +". \n Producten: " + producten ;
+                ".\n Saldo: " + saldo + ". \n Reiziger: " + reiziger +". \n Producten: " + producten + "\n`" ;
         return s;
     }
 

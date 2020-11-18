@@ -93,10 +93,18 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
         statement.close();
     }
 
+    private void updateOvChipkaartRelatie(OVChipkaart ovChipkaart) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("DELETE FROM ov_chipkaart_product WHERE product_nummer = ?");
+        statement.setInt(1, ovChipkaart.getKaartnummer());
+        statement.executeUpdate();
+        statement.close();
+    }
+
     @Override
     public boolean delete(OVChipkaart ovkaart) {
 
         try{
+            updateOvChipkaartRelatie(ovkaart);
             //leegmaken van de relaties met product
             updateProductRelatie(ovkaart.getKaartnummer(), new ArrayList<>());
 
@@ -135,7 +143,7 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
                 System.out.println("#" + nummer + " :" + geldigheid + " " + klasse + " " + saldo + " " );
 
 
-                 OVChipkaart ov = new OVChipkaart(nummer, geldigheid, klasse, saldo, rdao.findById(reiziger.getId()));
+                 OVChipkaart ov = new OVChipkaart(nummer, geldigheid, klasse, saldo, reiziger);
                  lijstKaarten.add(ov);
 
 
@@ -161,13 +169,14 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
     }
 
     }
+    //Hier return ik niet de producten omdat ik niet wil dat het systeem gaat loopen
     @Override
     public List<OVChipkaart> findAll() {
         PreparedStatement statement = null;
         ResultSet rs = null;
         try{
             List<OVChipkaart> lijst = new ArrayList<>();
-            statement = connection.prepareStatement("SELECT kaart_nummer, geldig_tot, klasse, saldo FROM ov_chipkaart");
+            statement = connection.prepareStatement("SELECT * FROM ov_chipkaart");
             rs = statement.executeQuery();
             System.out.println("Alle Ovkaarten: ");
             while (rs.next()){
@@ -175,12 +184,16 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
                 Date geldigheid = rs.getDate("geldig_tot");
                 int klasse = rs.getInt("klasse");
                 double saldo = rs.getDouble("saldo");
+                int reiziger_id = rs.getInt("reiziger_id");
 
-                System.out.println("#: " + kaartnummer+ " "+ geldigheid+" "+ klasse+ " "+ saldo );
-                lijst.add(new OVChipkaart(kaartnummer,geldigheid,klasse,saldo));
-                return lijst;
+                System.out.println("#: " + kaartnummer+ " "+ geldigheid+" "+ klasse+ " "+ saldo + " " +reiziger_id );
+                OVChipkaart ovChipkaart = new OVChipkaart(kaartnummer,geldigheid,klasse,saldo,rdao.findById(reiziger_id));
+
+                lijst.add(ovChipkaart);
+
             }
 
+            return lijst;
 
         }
         catch(SQLException exc){
@@ -216,17 +229,10 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
                 int klasse = rs.getInt("klasse");
                 double saldo = rs.getDouble("saldo");
 
-                List<Product> products = pdao.findByOVChipkaartZonderKaarten(kaartNummer);
 
                 System.out.println("KaartNummer: "+kaartNummer +". Geldigheid: " + geldigheid+". Klasse: "+klasse + ". Saldo: "+ saldo );
                 OVChipkaart result = new OVChipkaart(kaartNummer,geldigheid,klasse,saldo);
-                for(Product product : products) {
-                    List<OVChipkaart> ovChipkaarts = findByProduct(product);
-                    for(OVChipkaart ovChipkaart : ovChipkaarts) {
-                        product.addKaart(ovChipkaart);
-                    }
-                    result.addProduct(product);
-                }
+
 
                 return result;
             }
@@ -251,7 +257,9 @@ public class OVChipkaartDaoPsql implements OVChipkaartDao {
         }
         return null;
     }
-
+    //Hier gaat het systeem zeuren, omdat als er een ov wordt return dan worden de bijbehorende producten returnd
+    //maar er horen andere ov's bij zelfde producten en die worden ook returnd
+    // dus hij blijft loopen.
     @Override
     public List<OVChipkaart> findByProduct(Product product) {
         PreparedStatement statement = null;

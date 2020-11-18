@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+
 public class Reiziger {
     private int id ;
     private String voorletters ;
@@ -84,6 +85,11 @@ public class Reiziger {
     public void addKaart(OVChipkaart newKaart){
         kaarten.add(newKaart);
     }
+
+
+    public void setOVchipkaarten(List<OVChipkaart> OVchipkaarten) {
+        this.kaarten = OVchipkaarten;
+    }
     public void deleteKaart(OVChipkaart oldKaart){
         kaarten.remove(oldKaart);
     }
@@ -91,11 +97,11 @@ public class Reiziger {
 
 
     public String toString(){
-        String s = voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel) +" " + achternaam+ " heeft een id " + id + " en is geboren op " + geboortedatum ;
+        String s = "Reiziger: " + voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel) +" " + achternaam+ ". id: " + id + ". Geboortedatum: " + geboortedatum ;
         if (adres ==null ){
-            s += ". Het adres is onbekend. ";
+            s += "";
         }else{
-             s+=adres.toString();
+             s+=". Adres{ " + adres +" }" ;
 
     }return s;
 }

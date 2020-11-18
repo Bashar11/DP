@@ -6,7 +6,6 @@ import P4.Interface.OVChipkaartDao;
 import P4.Interface.ReizigerDAO;
 import P4.domein.OVChipkaart;
 import P4.domein.Reiziger;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,13 +30,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
     @Override
     public boolean save(Reiziger reiziger) {
 
-        if(reiziger != null){
-            try {
-                throw new Exception("Reiziger bestaat al ");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+
 
         try{
             //er wordt een gebruik gemaakt van de PreparedStatement om beveiliging issues , voor een veiliger werk
@@ -147,8 +140,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                System.out.println("#"+id + ": "+ voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel)+" "+ achternaam + " "+"( " + geboortedatum + " )");
 
                 Reiziger reiziger = new Reiziger(id, voorletters, tussenvoegsel, achternaam, geboortedatum);
-                adao.findByReiziger(reiziger);
-                ovdao.findByReiziger(reiziger);
+                reiziger.setAdres(adao.findByReiziger(reiziger));
 
                 return reiziger;
             }
@@ -189,11 +181,10 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 String achternaam = rs.getString("achternaam");
                 Date geboortedatum = Date.valueOf(rs.getString("geboortedatum"));
                 Reiziger reiziger = new Reiziger(id, voorletters, tussenvoegsel, achternaam, geboortedatum);
-                System.out.println("#"+id + ": "+ voorletters +(tussenvoegsel == null ? "" : " " + tussenvoegsel)+" "+ achternaam + " "+"( " + geboortedatum + " )");
 
                 // Find Adres en Kaarten
-                adao.findByReiziger(reiziger);
-                ovdao.findByReiziger(reiziger);
+                reiziger.setAdres(adao.findByReiziger(reiziger));
+                reiziger.setOVchipkaarten(ovdao.findByReiziger(reiziger));
 
                 result.add(reiziger);
 
@@ -230,7 +221,6 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 Date geboortedatum = Date.valueOf(rs.getString("geboortedatum"));
 
 
-                System.out.println("#"+id + ": "+ voorletters  +(tussenvoegsel == null ? "" : " " + tussenvoegsel)+" "+ achternaam + " "+"( " + geboortedatum + " )");
                 Reiziger reiziger = new Reiziger(id,voorletters,tussenvoegsel,achternaam,geboortedatum);
 
                 adao.findByReiziger(reiziger);

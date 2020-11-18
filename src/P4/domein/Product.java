@@ -74,7 +74,7 @@ public class Product {
     public void addKaart(OVChipkaart ov){
         for(OVChipkaart kaart : kaarten){
             if(kaart.getKaartnummer() == ov.getKaartnummer()){
-                throw new DuplicateException("Ov-kaart", kaart.getKaartnummer(),"Kaart nummer.");
+                throw new DuplicateException("Ov-kaart", ov.getKaartnummer(),"Kaart nummer.");
             }
         }
 
